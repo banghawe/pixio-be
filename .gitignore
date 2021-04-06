@@ -10,3 +10,4 @@ media
 myvenv/
 data/
 .env
+.vscode/
