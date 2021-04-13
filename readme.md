@@ -6,6 +6,10 @@ Pixio is website to detect image forgery detector, it was created for personal p
 
 ## How to run project on local environment
 
+```console
+pip install numpy
+```
+
 1. Please install docker on your machine
 2. Create .env file based on .env.example
 3. Running
