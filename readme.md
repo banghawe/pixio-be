@@ -13,7 +13,7 @@ pip install numpy
 1. Please install docker on your machine
 2. Create .env file based on .env.example
 3. Running
-   ```sh 
+   ```console
    docker-compose --env-file ./admin/.env up
    ```
 4. Open backend terminal
