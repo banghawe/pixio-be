@@ -5,12 +5,12 @@ from .views import PlanViewSet, SubscriptionViewSet
 
 urlpatterns = [
     path('plan', PlanViewSet.as_view({
-      'get': 'list',
+        'get': 'list',
     })),
     path('subscription', SubscriptionViewSet.as_view({
-      'post': 'create',
+        'post': 'create',
     })),
     path('subscription/<str:user_id>', SubscriptionViewSet.as_view({
-      'get': 'retrieve',
+        'get': 'retrieve',
     })),
 ]

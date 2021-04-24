@@ -13,11 +13,16 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 import environ
 
+
+root = environ.Path(__file__) - 2
+print(root)
 env = environ.Env(
     DEBUG=(bool, False)
 )
 
-environ.Env.read_env()
+SITE_ROOT = root()
+
+environ.Env.read_env(f'{SITE_ROOT}/.env')
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
