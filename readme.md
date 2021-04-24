@@ -10,19 +10,19 @@ Pixio is website to detect image forgery detector, it was created for personal p
 2. Create .env file based on .env.example
 3. Running
    ```console
-   docker-compose --env-file ./admin/.env up
+   docker-compose up
    ```
 4. Open backend terminal
-   ```sh
-   docker-compose --env-file ./admin/.env run backend sh
+   ```console
+   docker-compose run backend sh
    ```
 5. Add superuser for django admin
-   ```sh
+   ```console
    python manage.py createsuperuser
    ```
    and follow the instructions
 6. Migrate db schemes
-   ```sh
+   ```console
    python manage.py migrate
    ```
 

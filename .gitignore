@@ -11,3 +11,4 @@ myvenv/
 data/
 .env
 .vscode/
+.idea/
