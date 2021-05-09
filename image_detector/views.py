@@ -1,9 +1,13 @@
+import sys
+
 from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from .models import Plan, Subscription
 from .serializers import PlanSerializer, SubscriptionSerializer
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class PlanViewSet(viewsets.ViewSet):
@@ -18,17 +22,48 @@ class PlanViewSet(viewsets.ViewSet):
 class SubscriptionViewSet(viewsets.ViewSet):
     @staticmethod
     def retrieve(request: Request, user_id: str = None) -> Response:
-        subscription = Subscription.objects.get(username=user_id)
-        serializer = SubscriptionSerializer(subscription)
+        try:
+            user = User.objects.get(username=user_id)
+            subscription = Subscription.active_objects.get(username=user.id)
+            serializer = SubscriptionSerializer(subscription)
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        except ObjectDoesNotExist as ex:
+            print(ex)
+            return Response({"message": "User has not found"}, status=status.HTTP_400_BAD_REQUEST)
+        except:
+            print(sys.exc_info()[0])
+            return Response({"message": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @staticmethod
     def create(request: Request) -> Response:
-        # subscription = Subscription.objects.get(username=user_id)
+        try:
+            username = request.data["username"]
+            plan = request.data["plan"]
+            user = User.objects.filter(username=username).first()
+            data = request.data
 
-        serializer = SubscriptionSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+            if user is None:
+                return Response({"message": "user has not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+            subs = Subscription.active_objects.get(username=user.id)
+
+            if subs is not None:
+                if subs.plan.id == plan:
+                    return Response(
+                        {"message": "You have already subscribe to this plan"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    subs.deactivate()
+
+            data["username"] = user.id
+
+            serializer = SubscriptionSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except:
+            print(sys.exc_info())
+            return Response({"message": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
