@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Plan, Subscription
+from .models import Plan, Subscription, Detection
 
 
 class PlanSerializer(serializers.ModelSerializer):
@@ -12,3 +12,10 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = '__all__'
+
+
+class DetectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Detection
+        fields = '__all__'
+
