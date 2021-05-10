@@ -1,14 +1,21 @@
 import sys
+import os
+
+from django.core.files import File
+from skimage import io
 
 from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from .models import Plan, Subscription, Detection
-from .serializers import PlanSerializer, SubscriptionSerializer, DetectionSerializer
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
+
+from .models import Plan, Subscription, Detection
+from .serializers import PlanSerializer, SubscriptionSerializer, DetectionSerializer
+from .libs.image_forgery_detector.blockartifactgrid import BlockArtifactGrid
 
 
 class PlanViewSet(viewsets.ViewSet):
@@ -113,7 +120,32 @@ class DetectionViewSet(viewsets.ViewSet):
 
     @staticmethod
     def detect(request: Request, username: str, detection_id: int) -> Response:
-        pass
+        try:
+            detection = Detection.objects.get(pk=detection_id)
+            img_path = os.path.join(settings.BASE_DIR, detection.img.path)
+            result_dir_path = os.path.join(settings.BASE_DIR, f"{settings.MEDIA_ROOT}/result")
+
+            image = io.imread(img_path)
+            img_detector = BlockArtifactGrid(image)
+            img_detector.detect()
+
+            result_path = f"{result_dir_path}/result_{detection.id}.jpg"
+            io.imsave(result_path, img_detector.result_image)
+            saved_result_img = open(result_path, "rb")
+            saved_result_file = File(saved_result_img)
+            detection.result_img.save(
+                f"result_{detection.id}.jpg",
+                saved_result_file,
+                save=True
+            )
+
+            detection = Detection.objects.get(pk=detection_id)
+            serializer = DetectionSerializer(detection)
+
+            return Response(serializer.data)
+        except:
+            print(sys.exc_info())
+            return Response({"message": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @staticmethod
     def progress(request: Request, detection_id: int) -> Response:
