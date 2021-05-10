@@ -57,8 +57,8 @@ class Subscription(models.Model):
 
 class Detection(models.Model):
     subs_id = models.ForeignKey(Subscription, on_delete=models.DO_NOTHING)
-    img_path = models.TextField()
-    result_img_path = models.TextField(blank=True)
-    result_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    img = models.ImageField(upload_to="input", null=True, blank=True)
+    result_img = models.ImageField(upload_to="result", null=True, blank=True)
+    result_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     created_at = models.DateTimeField(default=timezone.now)
     created_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
