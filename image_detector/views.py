@@ -1,7 +1,8 @@
 import sys
 import os
+import uuid
 
-from django.core.files import File
+from celery.result import AsyncResult
 from skimage import io
 
 from rest_framework import viewsets, status
@@ -12,10 +13,11 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+from django.core.files import File
 
 from .models import Plan, Subscription, Detection
 from .serializers import PlanSerializer, SubscriptionSerializer, DetectionSerializer
-from .libs.image_forgery_detector.blockartifactgrid import BlockArtifactGrid
+from .tasks import detect_image
 
 
 class PlanViewSet(viewsets.ViewSet):
@@ -125,28 +127,28 @@ class DetectionViewSet(viewsets.ViewSet):
             img_path = os.path.join(settings.BASE_DIR, detection.img.path)
             result_dir_path = os.path.join(settings.BASE_DIR, f"{settings.MEDIA_ROOT}/result")
 
-            image = io.imread(img_path)
-            img_detector = BlockArtifactGrid(image)
-            img_detector.detect()
+            result = detect_image.delay(img_path, detection_id)
 
-            result_path = f"{result_dir_path}/result_{detection.id}.jpg"
-            io.imsave(result_path, img_detector.result_image)
-            saved_result_img = open(result_path, "rb")
-            saved_result_file = File(saved_result_img)
-            detection.result_img.save(
-                f"result_{detection.id}.jpg",
-                saved_result_file,
-                save=True
-            )
-
-            detection = Detection.objects.get(pk=detection_id)
-            serializer = DetectionSerializer(detection)
-
-            return Response(serializer.data)
+            return Response({"message": "detection is on progress", "task_id": result.id})
         except:
             print(sys.exc_info())
             return Response({"message": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @staticmethod
-    def progress(request: Request, detection_id: int) -> Response:
-        pass
+    def progress(request: Request, detection_id: int, task_id: int) -> Response:
+        try:
+            task = AsyncResult(task_id)
+            data = task.result
+            print(data)
+
+            data = {"message": task.state} if not data else data
+
+            if data == 1:
+                detection = Detection.objects.get(pk=detection_id)
+                serializer = DetectionSerializer(detection)
+                data = serializer.data
+
+            return Response(data)
+        except:
+            print(sys.exc_info())
+            return Response({"message": "Internal Server Error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
