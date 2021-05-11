@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import TemplateView
 
 from .views import PlanViewSet, SubscriptionViewSet, DetectionViewSet
 
@@ -17,11 +18,14 @@ urlpatterns = [
         'get': 'list',
         'post': 'upload',
     })),
-    path('detection/<str:username>/<str:detection_id>', DetectionViewSet.as_view({
+    path('detection/<str:username>/<int:detection_id>', DetectionViewSet.as_view({
         'get': 'retrieve',
         'patch': 'detect',
     })),
-    path('detection/<str:username>/<str:task_id>/progress', DetectionViewSet.as_view({
+    path('detection/<int:detection_id>/progress/<str:task_id>', DetectionViewSet.as_view({
         'get': 'progress',
     })),
+    path('docs/', TemplateView.as_view(
+        template_name='api-docs.html',
+    ), name='api-docs'),
 ]
