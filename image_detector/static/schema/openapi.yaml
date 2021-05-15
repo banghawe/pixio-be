@@ -1,0 +1,370 @@
+openapi: 3.0.2
+servers:
+  - url: 'http://localhost:8000/api'
+    description: ''
+    variables: {}
+info:
+  version: '1.0.0'
+  title: Pixio
+paths:
+  /plan:
+    get:
+      summary: get plan
+      operationId: getplan
+      parameters: []
+      responses:
+        '200':
+          description: '200'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/200'
+              example:
+                - id: 1
+                  name: Free
+                  price: '0.00'
+                  status: true
+                - id: 2
+                  name: Basic
+                  price: '100000.00'
+                  status: true
+                - id: 3
+                  name: Premium
+                  price: '260000.00'
+                  status: true
+      tags:
+        - Plan
+  /subscription/{username}:
+    get:
+      summary: retrieve subscription by user
+      operationId: getone
+      parameters:
+        - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: '200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                id: 12
+                start_at: '2021-04-14'
+                end_at: '2021-11-15'
+                status: true
+                username: 1
+                plan: 3
+        '400':
+          description: '400'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400'
+              example:
+                message: User has not found
+      tags:
+        - Subscription
+  /subscription:
+    get:
+      summary: create subscription
+      operationId: create
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          headers: {}
+        '201':
+          description: '201'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/201'
+              example:
+                id: 13
+                start_at: '2021-04-14'
+                end_at: '2021-11-15'
+                status: true
+                username: 1
+                plan: 2
+        '400':
+          description: 400 Already subscribe plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400'
+              example:
+                message: You have already subscribe to this plan
+      tags:
+        - Subscription
+  /detection/{username}:
+    post:
+      summary: upload image
+      operationId: uploadimage
+      parameters:
+        - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: ''
+          headers: {}
+        '201':
+          description: '201'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/201'
+              example:
+                id: 4
+                img: /media/input/ktp_GCKoVsD.jpg
+                result_img: null
+                result_percentage: '0.00'
+                created_at: '2021-05-11T06:09:58.500114Z'
+                subs_id: 12
+                created_by: 1
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - subs_id
+                - created_by
+              properties:
+                file:
+                  type: string
+                  format: binary
+                subs_id:
+                  type: string
+                  example: '12'
+                created_by:
+                  type: string
+                  example: '1'
+            example:
+              - key: img
+                type: file
+                src: /home/banghawe/Development/image forgery detector/ktp.jpg
+              - key: subs_id
+                value: '12'
+                type: text
+              - key: created_by
+                value: '1'
+                type: text
+      tags:
+        - Detection
+    get:
+      summary: get all user detection history
+      operationId: getalluserdetectionhistory
+      parameters:
+        - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: '200'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/200'
+              example:
+                - id: 1
+                  img: /media/input/ktp.jpg
+                  result_img: /media/result/result_1_YpVCdSQ.jpg
+                  result_percentage: '0.00'
+                  created_at: '2021-05-10T04:18:14Z'
+                  subs_id: 12
+                  created_by: 1
+                - id: 2
+                  img: /media/input/ktp_NwTBOyO.jpg
+                  result_img: null
+                  result_percentage: '0.00'
+                  created_at: '2021-05-10T04:56:35.020093Z'
+                  subs_id: 12
+                  created_by: 1
+        '400':
+          description: '400'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400'
+              example:
+                message: User has not found
+      tags:
+        - Detection
+  /detection/{username}/{detection_id}:
+    get:
+      summary: get user detection
+      operationId: getuserdetection
+      parameters:
+        - name: username
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            example: banghawe
+        - $ref: '#/components/parameters/detection_id'
+      responses:
+        '200':
+          description: '200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                id: 1
+                img: /media/input/ktp.jpg
+                result_img: /media/result/result_1_YpVCdSQ.jpg
+                result_percentage: '0.00'
+                created_at: '2021-05-10T04:18:14Z'
+                subs_id: 12
+                created_by: 1
+        '400':
+          description: 400 Detection has not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/400'
+              example:
+                message: Detection has not found
+      tags:
+        - Detection
+        
+    patch:
+      summary: detect uploaded image
+      operationId: detectuploadedimage
+      parameters:
+        - name: username
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: string
+            example: banghawe
+        - $ref: '#/components/parameters/detection_id'
+      responses:
+        '200':
+          description: '200'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                message: detection is on progress
+                task_id: ce90956a-b2ef-4eab-8063-50cd61d5b745
+      tags:
+        - Detection
+  /detection/{detection_id}/progress/{task_id}:
+    get:
+      summary: Get detection progress
+      operationId: Getdetectionprogress
+      parameters:
+        - name: detection_id
+          in: path
+          required: true
+          style: simple
+          schema:
+            type: number
+        - $ref: '#/components/parameters/task_id'
+      responses:
+        '200':
+          description: 200 Process finished
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/200'
+              example:
+                id: 1
+                img: /media/input/ktp.jpg
+                result_img: /media/result/result_1_1OWsfY3.jpg
+                result_percentage: '0.00'
+                created_at: '2021-05-10T04:18:14Z'
+                subs_id: 12
+                created_by: 1
+      tags:
+        - Detection
+
+components:
+  schemas:
+    200:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            description: ''
+            default: 1
+          name:
+            type: string
+            description: ''
+            default: Free
+          price:
+            type: string
+            description: ''
+            default: '0.00'
+          status:
+            type: boolean
+            description: ''
+            default: true
+    201:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ''
+          default: 13
+        start_at:
+          type: string
+          description: ''
+          default: '2021-04-14'
+        end_at:
+          type: string
+          description: ''
+          default: '2021-11-15'
+        status:
+          type: boolean
+          description: ''
+          default: true
+        username:
+          type: integer
+          description: ''
+          default: 1
+        plan:
+          type: integer
+          description: ''
+          default: 2
+    400:
+      type: object
+      properties:
+        message:
+          type: string
+          description: ''
+          default: User has not found
+  parameters:
+    username:
+      name: username
+      in: path
+      required: true
+      style: simple
+      schema:
+        type: string
+        example: banghawe
+    detection_id:
+      name: detection_id
+      in: path
+      required: true
+      style: simple
+      schema:
+        type: number
+    task_id:
+      name: task_id
+      in: path
+      required: true
+      style: simple
+      schema:
+        type: string
+        example: 0b0800a8-bba6-415d-b767-67fb14f695e2
+
