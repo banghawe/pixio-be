@@ -14,7 +14,7 @@ from .usecases import DetectionUseCase, DetectImageUseCase, SubscriptionUseCase
 class PlanViewSet(viewsets.ViewSet):
     @staticmethod
     def list(request: Request) -> Response:
-        plans = Plan.objects.all()
+        plans = Plan.active_objects.all()
         serializer = PlanSerializer(plans, many=True)
 
         return Response(serializer.data)
