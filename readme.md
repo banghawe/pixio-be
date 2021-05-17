@@ -29,6 +29,10 @@ Pixio is website to detect image forgery detector, it was created for personal p
    ```console
    celery -A admin worker --loglevel=INFO
    ```
+8. Run test
+   ```console
+   coverage run --source='.' manage.py test
+   ```
 
 ## Postman Doc
 https://documenter.getpostman.com/view/5874517/TzRShnpp

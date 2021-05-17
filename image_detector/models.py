@@ -13,11 +13,8 @@ class ActiveManager(models.Manager):
 
 class ActiveSubsManager(models.Manager):
     def get_queryset(self):
-        try:
-            today = datetime.date.today()
-            result = super().get_queryset().filter(status=1).filter(Q(end_at__gte=today) | Q(end_at=None))
-        except Subscription.DoesNotExist:
-            result = None
+        today = datetime.date.today()
+        result = super().get_queryset().filter(status=1).filter(Q(end_at__gte=today) | Q(end_at=None))
 
         return result
 
@@ -27,7 +24,8 @@ class Plan(models.Model):
     price = models.DecimalField(max_digits=24, decimal_places=2)
     status = models.BooleanField(default=True)
 
-    objects = ActiveManager()
+    objects = models.Manager()
+    active_objects = ActiveManager()
 
     def __str__(self):
         return self.name
@@ -37,12 +35,12 @@ class Subscription(models.Model):
     username = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     plan = models.ForeignKey(Plan, on_delete=models.DO_NOTHING)
     start_at = models.DateField(default=timezone.now)
-    end_at = models.DateField(default=timezone.now)
+    end_at = models.DateField(null=True, blank=True)
     status = models.BooleanField(default=True)
 
     def is_active(self) -> bool:
         today = datetime.date.today()
-        return self.status and (self.end_at >= today or self.end_at is None)
+        return self.status and (self.end_at is None or self.end_at >= today)
 
     def deactivate(self) -> None:
         self.status = False
